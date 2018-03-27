@@ -66,13 +66,13 @@ public class RecString extends JPanel
     public void frequencyButtons(int offset)
     {
         try
-            {
-                _frequency = TAB.closestNote(Double.parseDouble(_freqDisplay.getText()), offset);
-            }
-            catch (final IllegalArgumentException E)
-            {
-                _frequency = TAB.closestNote(_frequency, offset);
-            }
+        {
+            _frequency = TAB.closestNote(Double.parseDouble(_freqDisplay.getText()), offset);
+        }
+        catch (final IllegalArgumentException E)
+        {
+            _frequency = TAB.closestNote(_frequency, offset);
+        }
     }
     
     private class LeftButton implements ActionListener
