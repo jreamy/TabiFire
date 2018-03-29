@@ -40,7 +40,7 @@ public class TabRecorder extends JPanel
     {   
         // Get the TAB to display
         _tab = tab;
-        
+                
         _displayText = new JTextArea[_tab.getNumberOfStrings()];
         
         // Clear the text storage
@@ -52,7 +52,7 @@ public class TabRecorder extends JPanel
             JTextArea line = new JTextArea(1, 40);
             line.setEditable(false);
             line.setFont(new Font("Consolas", 0, 14));
-            line.setText(_tab.getTABLineFromEnd(_tab.getTABLength() - i - 1, 32));
+            line.setText(_tab.getTABLineFromEnd(i, 32));
             _displayText[i] = line;
             _displayPanel.add(line);
         }

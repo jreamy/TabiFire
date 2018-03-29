@@ -16,7 +16,9 @@ public class RecString extends JPanel
     private final JTextArea _freqDisplay;
     private final JTextArea _noteDisplay;
     
-    public RecString(double frequency)
+    private RecorderSettings _partOf;
+    
+    public RecString(double frequency, RecorderSettings housing)
     {
         // Left Button
         _leftButton = new JButton(" < ");
@@ -42,11 +44,13 @@ public class RecString extends JPanel
                 
         // Display the frequency
         showFrequency();
+        
+        _partOf = housing;
     }
     
-    public RecString()
+    public RecString(RecorderSettings housing)
     {
-        this(110.0);
+        this(110.0, housing);
     }
     
     public double getFrequency()
@@ -57,10 +61,10 @@ public class RecString extends JPanel
     public void showFrequency()
     {
         // Show the frequency
-        _freqDisplay.setText(String.format("%.2f", _frequency));
+        _freqDisplay.setText(String.format("%.3f", _frequency));
         
         // Show the note
-        _noteDisplay.setText("    " + TAB.frequencyToNote(_frequency));
+        _noteDisplay.setText(TAB.frequencyToNote(_frequency));
     }
     
     public void frequencyButtons(int offset)
@@ -82,6 +86,7 @@ public class RecString extends JPanel
         {
             frequencyButtons(-1);
             showFrequency();
+            _partOf.rename();
         }
     }
     
@@ -92,6 +97,7 @@ public class RecString extends JPanel
         {
             frequencyButtons(1);
             showFrequency();
+            _partOf.rename();
         }
     }
 }

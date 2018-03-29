@@ -30,8 +30,8 @@ public class TabiFire extends JFrame
     private char _state;
     
     // The tabs themselves
-    TAB _recTAB;
-    TAB _edtTAB;
+    TAB _recTAB = new TAB();
+    TAB _edtTAB = new TAB();
     
     // Header Panel
     private final JButton _menuConnect;
@@ -302,6 +302,51 @@ public class TabiFire extends JFrame
         _tuner.setVisible(true);
     }
     
+    public boolean trySaving(TAB tab, String filename)
+    {
+        boolean success = false;
+        
+        if (!filename.contains(".txt"))
+        {
+            filename += ".txt";
+        }
+        
+        try
+        {
+            tab.saveTAB(filename);
+            success = true;
+        }
+        catch(final IOException E)
+        {
+            JOptionPane.showMessageDialog(null, "Error saving file.");
+        }
+        
+        return success;
+    }
+    
+    public boolean tryLoading(TAB tab, String filename)
+    {
+        boolean success = false;
+        
+        if (!filename.contains(".txt"))
+        {
+            filename += ".txt";
+        }
+        
+        try
+        {
+            tab.readTAB(filename);
+            _editor.setTAB(_edtTAB);
+            success = true;
+        }
+        catch(final IOException E)
+        {
+            JOptionPane.showMessageDialog(null, "Could not locate file.");
+        }
+        
+        return success;
+    }
+    
     private class FileButtonListener implements ActionListener
     {
         @Override
@@ -313,37 +358,20 @@ public class TabiFire extends JFrame
                     break;
                 case REC:
                     _recTAB = new TAB(_recorderSettings.getTabSettings());
-                    try
-                    {
-                        _recTAB.readTAB("BabyTab.txt");
-                    }
-                    catch (final IOException E){}
+                    _recorderSettings.savePresets();
                     setState(RECD);
                     break;
                 case RECD:
+                    trySaving(_recTAB, _fileText.getText());
                     break;
                 case EDT:
-                    try
-                    {
-                        _edtTAB = new TAB(_fileText.getText());
-                        _editor.setTAB(_edtTAB);
+                    if (tryLoading(_edtTAB, _fileText.getText()))
                         setState(EDIT);
-                    }
-                    catch(final IOException E)
-                    {
-                        JOptionPane.showMessageDialog(null, "Could not locate file.");
+                    else
                         setState(EDT);
-                    }
                     break;
                 case EDIT:
-                    try
-                    {
-                        _edtTAB.saveTAB(_fileText.getText());
-                    }
-                    catch(final IOException E)
-                    {
-                        JOptionPane.showMessageDialog(null, "Error saving file.");
-                    }
+                    trySaving(_edtTAB, _fileText.getText());
                     break;
                 case TUNE:
                     break;

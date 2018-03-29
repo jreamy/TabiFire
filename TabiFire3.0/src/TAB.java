@@ -1,4 +1,7 @@
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -210,6 +213,7 @@ public class TAB {
     public String getTABLine(int lineNumber, int start, int end)
     {
         String line = "";
+        String ret;
         for (int i = start; i < end; i++)
         {
             int n = _tab.get(i)[lineNumber];
@@ -222,11 +226,15 @@ public class TAB {
                 line += " | -";
         }
         
-        return " " 
+        ret = " " 
                 + frequencyToNote(_baseNotes[lineNumber]) 
                 + " | -"
                 + line 
                 + " |";
+        
+        if (ret.substring(ret.length() - 7).equals("- | - |"))
+            ret = ret.substring(0, ret.length() - 4);
+        return ret;
     }
     
     public String getTABLineFromEnd(int lineNumber, int length)
@@ -242,9 +250,40 @@ public class TAB {
         {
             end = 0;
         }
-        
+                
         // Get the line
         return getTABLine(lineNumber, start, end);
+    }
+    
+    public String getFormattedTAB()
+    {
+        return getFormattedTAB(3);
+    }
+    
+    public String getFormattedTAB(int measuresPerLine)
+    {
+        String ret = "";
+        int step = _timeSignature[0] * 4 * measuresPerLine;
+        int loc = 0;
+        
+        while (loc + step < getTABLength())
+        {
+            for (int i = getNumberOfStrings() - 1; i >= 0; i--)
+            {
+                ret += getTABLine(i, loc, loc + step);
+                ret += "\n";
+            }
+            ret += "\n";
+            loc += step;
+        }
+        
+        for (int i = getNumberOfStrings() - 1; i >= 0; i--)
+        {
+            ret += getTABLine(i, loc, getTABLength());
+            ret += "\n";
+        }
+        
+        return ret;
     }
     
     public int getTABLength()
@@ -282,8 +321,6 @@ public class TAB {
         
         return 110.0 * Math.pow(2, offSet / 12.0);
     }
-    
-    
     
     public static int stepsToA(double frequency)
     {
@@ -348,5 +385,21 @@ public class TAB {
         
         return retLine;
     }
-            
+    
+    public static void copyTAB(TAB tab, int measuresPerLine)
+    {
+        stringToClipboard(tab.getFormattedTAB(measuresPerLine));
+    }
+    
+    public static void copyTAB(TAB tab)
+    {
+        copyTAB(tab, 2);
+    }
+    
+    public static void stringToClipboard(String str)
+    {
+        Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection sl = new StringSelection(str);
+        clip.setContents(sl, null);
+    }
 }

@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.InputMismatchException;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -41,6 +42,12 @@ public class TabEditor extends JPanel
     private final JButton _editPlus;
     private final JButton _editMinus;
     private final JPanel _editPanel;
+    
+    // Copy to clipboard
+    private final JButton _copyButton;
+    private final JPanel _copyPanel;
+    private final JTextArea _copyText;
+    private final JTextArea _copyNumber;
     
     public TabEditor()
     {
@@ -112,6 +119,27 @@ public class TabEditor extends JPanel
         _editPanel.add(_editFarRight);
         
         // =============================================== //
+        //                  Copying Tools                  //
+        // =============================================== //
+        
+        _copyButton = new JButton(" Copy to Clipboard ");
+        _copyButton.addActionListener(new CopyButton());
+        
+        _copyText = new JTextArea(1, 6);
+        _copyText.setEditable(false);
+        _copyText.setText("Measures per line : ");
+        
+        _copyNumber = new JTextArea(1, 3);
+        _copyNumber.setText("2");
+        
+        _copyPanel = new JPanel();
+        _copyPanel.setLayout(new FlowLayout());
+        
+        _copyPanel.add(_copyButton);
+        _copyPanel.add(_copyText);
+        _copyPanel.add(_copyNumber);
+        
+        // =============================================== //
         //                  Construction                   //
         // =============================================== //
         
@@ -119,6 +147,7 @@ public class TabEditor extends JPanel
         
         this.add(_tabPanel);
         this.add(_editPanel);
+        this.add(_copyPanel);
         
         this.setVisible(true);
         
@@ -128,9 +157,7 @@ public class TabEditor extends JPanel
     {
         // Get the TAB to display
         _tab = tab;
-        
-        System.out.println(_tab.getTABLineFromEnd(0, 14));
-        
+                
         // Zero the position
         _tabPosition = 0;
         
@@ -267,8 +294,6 @@ public class TabEditor extends JPanel
         {
             // Get the corresponding line
             line = TAB.stringToLine(_tabLines[4 + 2 * i[0]].getText());
-            System.out.println(Arrays.toString(i));
-            System.out.println(Arrays.toString(line));
             if (line.length == _tab.getNumberOfStrings())
             {
                 // Set the line in the tab
@@ -412,6 +437,23 @@ public class TabEditor extends JPanel
         {
             // Update Tab
             updateTAB();
+        }
+    }
+    
+    private class CopyButton implements ActionListener
+    {
+        @Override
+        public void actionPerformed(final ActionEvent e)
+        {
+            try
+            {
+                TAB.copyTAB(_tab, Integer.parseInt(_copyNumber.getText()));
+            }
+            catch (final InputMismatchException f)
+            {
+                TAB.copyTAB(_tab);
+                _copyNumber.setText("2");
+            }
         }
     }
 }

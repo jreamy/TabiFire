@@ -1,12 +1,13 @@
 
+import java.util.Arrays;
+
+
 public class TabSettings 
 {
     private double[] _baseNotes;
     private int[] _timeSignature;
     private String _settingsName;
-    
-    private static int _numOfCustom = 0;
-    
+        
     public TabSettings(double[] baseNotes, int[] timeSignature, String name)
     {
         _baseNotes = baseNotes;
@@ -16,10 +17,13 @@ public class TabSettings
     
     public TabSettings(double[] baseNotes, int[] timeSignature)
     {
-        this(baseNotes, timeSignature, "Custom " + Integer.toString(_numOfCustom));
-        _numOfCustom++;
+        this(baseNotes, timeSignature, "Custom");
     }    
     
+    public TabSettings(double[] baseNotes, String name)
+    {
+        this(baseNotes, new int[]{4, 4}, name);
+    }
     
     public TabSettings(TAB tab)
     {
@@ -47,7 +51,7 @@ public class TabSettings
                     4, 
                     4
                 },
-                "Standard"
+                "E Standard"
         );
     }
     
@@ -61,8 +65,54 @@ public class TabSettings
         return _timeSignature;
     }
     
+    public String getName()
+    {
+        return _settingsName;
+    }
+    
+    public void setName(String newName)
+    {
+        _settingsName = newName;
+    }
+    
     public int getNumberOfStrings()
     {
         return _baseNotes.length;
+    }
+    
+    public boolean sameAs(Object obj)
+    {
+        boolean isSame = false;
+        
+        if (obj instanceof TabSettings)
+        {
+            TabSettings t = (TabSettings) obj;
+            
+            if (_baseNotes.length == t.getBaseNotes().length)
+            {
+                isSame = true;
+                
+                for (int i = 0; i < _baseNotes.length; i++)
+                {
+                    isSame = isSame && (Math.abs(_baseNotes[i] - t.getBaseNotes()[i]) < .01);
+                }
+            }
+        }
+        
+        return isSame;
+    }
+    
+    public String getPrintable()
+    {
+        String ret = "";
+        ret += this._settingsName + "\n";
+        ret += this.getNumberOfStrings() + "\n";
+        
+        for (double freq : this.getBaseNotes())
+        {
+            ret += String.format("%.3f", freq) + "\n";
+        }
+        
+        return ret;
     }
 }
