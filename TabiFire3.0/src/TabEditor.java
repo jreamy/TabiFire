@@ -1,4 +1,4 @@
-
+// Imports
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -15,8 +15,11 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-
-public class TabEditor extends JPanel
+/**
+ * The TabEditor Panel loads a given tab and displays it for editing.
+ * @author jackreamy
+ */
+public class TabEditor extends JPanel implements TabDisplay
 {
     // Instance variables
     private int _tabPosition = 0;
@@ -49,28 +52,37 @@ public class TabEditor extends JPanel
     private final JTextArea _copyText;
     private final JTextArea _copyNumber;
     
+    /**
+     * The panel constructor.
+     */
     public TabEditor()
     {
         // =============================================== //
         //                   TAB display                   //
         // =============================================== //
         
-        // Set up the panel
+        // Set up the panel for the tab
         _tabPanel = new JPanel();
         _tabPanel.setLayout(new GridBagLayout());
         
         // Set up the tab columns
         _tabLines = new JTextArea[5 + _defaultDist * 2];
         
-        // Add the lines 
+        // Add each text column to the tab panel
         for (int i = 0; i < _tabLines.length; i++)
         {
+            // Create the new text area
             _tabLines[i] = new JTextArea(6, 1);
+            
+            // Set the font
             _tabLines[i].setFont(new Font("Consolas", 0, 14));
+            
+            // Add the text area to the panel
             _tabPanel.add(_tabLines[i]);
         }
         
-        // Set up the strings
+        // Initializes the array list of strings which will 
+        // hold the column text of the tabline
         _tabDisplay = new String[_defaultDist];
         
         // =============================================== //
@@ -122,19 +134,24 @@ public class TabEditor extends JPanel
         //                  Copying Tools                  //
         // =============================================== //
         
+        // Copy Button
         _copyButton = new JButton(" Copy to Clipboard ");
         _copyButton.addActionListener(new CopyButton());
         
+        // Copy Text Field
         _copyText = new JTextArea(1, 6);
         _copyText.setEditable(false);
         _copyText.setText("Measures per line : ");
         
+        // The number text field
         _copyNumber = new JTextArea(1, 3);
         _copyNumber.setText("2");
         
+        // Set up the copy panel
         _copyPanel = new JPanel();
         _copyPanel.setLayout(new FlowLayout());
         
+        // Add the copy things to the copy panel
         _copyPanel.add(_copyButton);
         _copyPanel.add(_copyText);
         _copyPanel.add(_copyNumber);
@@ -143,16 +160,22 @@ public class TabEditor extends JPanel
         //                  Construction                   //
         // =============================================== //
         
+        // Set the layout of the TabEditor panel
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
+        // Add the other panels to the TabEditor Panel
         this.add(_tabPanel);
         this.add(_editPanel);
         this.add(_copyPanel);
         
+        // Set the panel visible
         this.setVisible(true);
-        
     }
     
+    /**
+     * Loads the input tab into the TabEditor panel / display.
+     * @param tab the input tab to edit.
+     */
     public void setTAB(TAB tab)
     {
         // Get the TAB to display
@@ -173,6 +196,7 @@ public class TabEditor extends JPanel
         _tabDivider = "|";
         _tabEmpty = " ";
         
+        // Iterate through the base notes setting default tab lines
         for (int i = 1; i < tuning.length; i++)
         {
             _tabTuning += "\n" + TAB.frequencyToNote(tuning[i]);
@@ -187,23 +211,31 @@ public class TabEditor extends JPanel
         _tabLines[2].setText(_tabDivider);
         _tabLines[3].setText(_tabBlank);        
         
+        // Set the first few lines uneditable
         for(int i = 0; i < 4; i++)
         {
             _tabLines[i].setEditable(false);
         }
         
-        // All the blank lines
+        // All the blank lines (every other) not editable
         for (int i = 5; i < _tabLines.length; i += 2)
         {
             _tabLines[i].setText(_tabBlank);
             _tabLines[i].setEditable(false);
         }
         
+        // Set the last line of the tab to a series of '|'
         _tabLines[4 + 2 * _defaultDist].setText(_tabDivider);
         
+        // Update the display
         displayTAB();
     }
     
+    /**
+     * Updated the display of the current tab held in _tab.
+     * This one was really messy and I got it working by the
+     * grace of God.
+     */
     public void displayTAB()
     {
         // Update the distribution
@@ -247,6 +279,12 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * Given the column number in the display, calculates the 
+     * position in the actual tab.
+     * @param column the column number in the display
+     * @return the column number in the tab
+     */
     public int calcPosition(int column)
     {
         int multiplier = 4 * _tab.getTimeSignature()[0];
@@ -259,6 +297,7 @@ public class TabEditor extends JPanel
     
     public int[][] getChangedColumns()
     {
+        // Initialize an ArrayList of int arrays
         ArrayList<int[]> columns = new ArrayList<>();
         
         // Steps per metre
@@ -266,24 +305,36 @@ public class TabEditor extends JPanel
         
         int col = 0;
         int pos = _tabPosition;
-                
+        
+        // Iterate through the columns
         for(int i = 0; i < _tabDist; i ++)
         {
+            // Calculates column number in the display
             col = 4 + 2 * i;
-
+            
+            // If the position is not an added '|' character
             if ((_tabPosition + i) % multiplier != 0 || col == 4)
             {   
+                // If the display line is not what it 'supposes' to be
                 if (!_tabDisplay[i].equals(_tabLines[col].getText()))
                 {
+                    // Add an array to the ArrayList containing:
+                    //  { position in display, position in tab }
                     columns.add(new int[] {i, pos});
                 }
+                
+                // Increase the position in the tab
                 pos++;
             }
         }
         
+        // Returns an array made from the ArrayList
         return columns.toArray(new int[0][0]);
     }
     
+    /**
+     * Updates the tab data given changes in the display.
+     */
     public void updateTAB()
     {        
         // The line to hold which things to update
@@ -292,8 +343,10 @@ public class TabEditor extends JPanel
         // Iterate though the lines to change
         for (int[] i : getChangedColumns())
         {
-            // Get the corresponding line
+            // Get array corresponding to the changed column 
             line = TAB.stringToLine(_tabLines[4 + 2 * i[0]].getText());
+            
+            // Check that the line is the right length
             if (line.length == _tab.getNumberOfStrings())
             {
                 // Set the line in the tab
@@ -305,18 +358,28 @@ public class TabEditor extends JPanel
         displayTAB();
     }
     
+    /**
+     * Updates the _tabDist given the length of the array.
+     * The _tabDist is used initially if the tab is less than a given length.
+     */
     public void updateDist()
     {
+        // Check if the tab is too short to display the entirety
         if (_tab.getTABLength() < _defaultDist)
         {
+            // If it is, set the 'dist' to the tab length
             _tabDist = _tab.getTABLength();
         }
         else
         {
+            // Otherwise use the default 'dist'
             _tabDist = _defaultDist;
         }
     }
     
+    /**
+     * The left button moves the tab 1 left.
+     */
     private class EditButtonLeft implements ActionListener
     {
         @Override
@@ -336,6 +399,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The far left button moves the tab all the way to the beginning.
+     */
     public class EditButtonFarLeft implements ActionListener
     {
         @Override
@@ -352,6 +418,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The right button moves the tab 1 right.
+     */
     private class EditButtonRight implements ActionListener
     {
         @Override
@@ -371,6 +440,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The far right button moves the tab all the way to the end.
+     */
     private class EditButtonFarRight implements ActionListener
     {
         @Override
@@ -387,6 +459,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The plus button adds a new measure.
+     */
     private class EditButtonPlus implements ActionListener
     {
         @Override
@@ -403,6 +478,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The minus button removes the last measure
+     */
     private class EditButtonMinus implements ActionListener
     {
         @Override
@@ -430,6 +508,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The update button updates the tab data given what's in the display
+     */
     private class EditButtonUpdate implements ActionListener
     {
         @Override
@@ -440,6 +521,9 @@ public class TabEditor extends JPanel
         }
     }
     
+    /**
+     * The copy button copies the tab to the clipboard
+     */
     private class CopyButton implements ActionListener
     {
         @Override

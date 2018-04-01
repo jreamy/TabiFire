@@ -1,4 +1,4 @@
-
+// Imports
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -14,7 +14,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-
+/**
+ * The TabiFire is the application...
+ * @author jackreamy
+ */
 public class TabiFire extends JFrame
 {
     // State Labels
@@ -23,13 +26,16 @@ public class TabiFire extends JFrame
     public static final char RECD = 'R';
     public static final char EDT  = 'e';
     public static final char EDIT = 'E';
+    public static final char PRA  = 'p';
+    public static final char PRAC = 'P';
     public static final char TUNE = 't';
+    public static final char WAIT = 'w';
     public static final char QUIT = 'q';
     
     // State variable
     private char _state;
     
-    // The tabs themselves
+    // The tabs themselves for the recorder and editor
     TAB _recTAB = new TAB();
     TAB _edtTAB = new TAB();
     
@@ -61,6 +67,12 @@ public class TabiFire extends JFrame
     // Tuner
     private final Tuner _tuner;
     
+    // Hardware interface
+    private Hardware _arduino;
+    
+    /**
+     * The constructor.
+     */
     TabiFire()
     {
         // Set up the frame
@@ -163,8 +175,10 @@ public class TabiFire extends JFrame
         //                  Construction                   //
         // =============================================== //
         
+        // Set the layout of the TabiFire
         this.setLayout(new FlowLayout());
-
+        
+        // Add things to the TabiFire panel
         this.add(_headerPanel);
         this.add(_recorder);
         this.add(_recorderSettings);
@@ -172,13 +186,21 @@ public class TabiFire extends JFrame
         this.add(_tuner);
         this.add(_filePanel);
         
+        // Set the state
         this.setState(INIT);
         
+        // Set it visible
         this.setVisible(true);
     }
     
+    /**
+     * Sets the state.
+     * @param state the state to switch to.
+     */
     public void setState(char state)
     {
+        // Switch on the input state and display what needs
+        // to be displayed
         switch(state)
         {
             case INIT:
@@ -215,6 +237,14 @@ public class TabiFire extends JFrame
         _state = state;
     }
     
+    // ===================================================== //
+    //                   Display Functions                   //
+    // ===================================================== //
+    
+    /**
+     * Sets most things not visible
+     * @param clearText whether the fileText should be cleared
+     */
     public void hideAll(boolean clearText)
     {
         _headerPanel.setVisible(true);
@@ -229,11 +259,17 @@ public class TabiFire extends JFrame
             _fileText.setText("");
     }
     
+    /**
+     * Calls the hideAll() method and clears the fileText
+     */
     public void hideAll()
     {
         hideAll(true);
     }
     
+    /**
+     * Shows the connector features
+     */
     public void showConnector()
     {   
         // Show the things we need
@@ -245,6 +281,9 @@ public class TabiFire extends JFrame
         _instructions.setVisible(true);
     }
     
+    /**
+     * Shows the Recorder Settings panel
+     */
     public void showRecorderSettings()
     {
         // Show the things we need
@@ -257,6 +296,9 @@ public class TabiFire extends JFrame
         _instructions.setVisible(true);
     }
     
+    /**
+     * Shows the Tab Recorder panel
+     */
     public void showRecorder()
     {
         // Show the things we do need
@@ -269,6 +311,9 @@ public class TabiFire extends JFrame
         _instructions.setVisible(true);
     }
     
+    /**
+     * Shows the "Open file" page
+     */
     public void showEditOpener()
     {
         // Show the things we need
@@ -281,6 +326,9 @@ public class TabiFire extends JFrame
         _instructions.setVisible(true);
     }
     
+    /**
+     * Shows the editor
+     */
     public void showEditor()
     {
         // Show the things we need
@@ -296,16 +344,31 @@ public class TabiFire extends JFrame
         _instructions.setVisible(true);
     }
     
+    /**
+     * Shows the tuner
+     */
     public void showTuner()
     {
         // Show the things we need
         _tuner.setVisible(true);
     }
     
+    // ===================================================== //
+    //                     Save and Load                     //
+    // ===================================================== //
+    
+    /**
+     * Tries to save the Tab to a file
+     * @param tab the tab to save
+     * @param filename the filename to save 
+     * @return whether it successfully saved
+     */
     public boolean trySaving(TAB tab, String filename)
     {
+        // Default failed to save
         boolean success = false;
         
+        // If the filename doesn't have .txt, add it to the filename
         if (!filename.contains(".txt"))
         {
             filename += ".txt";
@@ -313,20 +376,31 @@ public class TabiFire extends JFrame
         
         try
         {
+            // Saves the tab
             tab.saveTAB(filename);
             success = true;
         }
         catch(final IOException E)
         {
+            // If it couldn't save, tell the user
             JOptionPane.showMessageDialog(null, "Error saving file.");
         }
         
         return success;
     }
     
-    public boolean tryLoading(TAB tab, String filename)
+    /**
+     * Tries to load the tab from file
+     * @param tabDisplay the display to set
+     * @param tab the tab to load into
+     * @param filename the file to load from
+     * @return whether the file was successfully loaded
+     */
+    public boolean tryLoading(TabDisplay tabDisplay, TAB tab, String filename)
     {
         boolean success = false;
+        
+        System.out.println("TryLoading");
         
         if (!filename.contains(".txt"))
         {
@@ -335,18 +409,30 @@ public class TabiFire extends JFrame
         
         try
         {
+            // Read the tab from file
             tab.readTAB(filename);
-            _editor.setTAB(_edtTAB);
+
+            // Set the tab to the display
+            tabDisplay.setTAB(tab);
+            
             success = true;
         }
         catch(final IOException E)
         {
+            // If it didn't work, let the user know
             JOptionPane.showMessageDialog(null, "Could not locate file.");
         }
         
         return success;
     }
     
+    // ===================================================== //
+    //                   Button Listeners                    //
+    // ===================================================== //
+    
+    /**
+     * The multipurpose file button with it's various purposes
+     */
     private class FileButtonListener implements ActionListener
     {
         @Override
@@ -365,7 +451,7 @@ public class TabiFire extends JFrame
                     trySaving(_recTAB, _fileText.getText());
                     break;
                 case EDT:
-                    if (tryLoading(_edtTAB, _fileText.getText()))
+                    if (tryLoading(_editor, _edtTAB, _fileText.getText()))
                         setState(EDIT);
                     else
                         setState(EDT);
@@ -381,6 +467,9 @@ public class TabiFire extends JFrame
         }
     }
     
+    /**
+     * The menu connect button sets the INIT state
+     */
     private class MenuConnectButton implements ActionListener
     {
         @Override
@@ -390,6 +479,9 @@ public class TabiFire extends JFrame
         }
     }
     
+    /**
+     * The menu record button sets the REC state
+     */
     private class MenuRecordButton implements ActionListener
     {
         @Override
@@ -399,6 +491,9 @@ public class TabiFire extends JFrame
         }
     }
     
+    /**
+     * The edit button sets the EDT state
+     */
     private class MenuEditButton implements ActionListener
     {
         @Override
@@ -408,6 +503,9 @@ public class TabiFire extends JFrame
         }
     }
     
+    /**
+     * The tune button sets the TUNE state
+     */
     private class MenuTuneButton implements ActionListener
     {
         @Override
@@ -417,6 +515,9 @@ public class TabiFire extends JFrame
         }
     }
     
+    /**
+     * The quit button sets the QUIT state
+     */
     private class MenuQuitButton implements ActionListener
     {
         @Override
@@ -426,12 +527,106 @@ public class TabiFire extends JFrame
         }
     }
     
+    /**
+     * The window closer allows you to close the window
+     */
     private class WindowCloser extends WindowAdapter
     {  
         @Override
         public void windowClosing(final WindowEvent event)
         {  
             System.exit(0);
+        }
+    }
+    
+    // ===================================================== //
+    //                  Data Communication                   //
+    //                These are undeveloped                  //
+    // ===================================================== //
+    
+    /**
+     * This isn't developed yet, but it'll be used to communicate
+     * between the Hardware object and the TabiFire
+     * @param arduino the hardware object to connect with
+     */
+    public void link(Hardware arduino)
+    {
+        _arduino = arduino;
+    }
+    
+    /**
+     * Takes a character command
+     * @param c a character command
+     */
+    public void send(char c)
+    {
+        switch(_state)
+        {
+            case INIT:
+                break;
+            case REC:
+                
+                break;
+            case RECD:
+                break;
+            case PRA:
+                break;
+            case PRAC:
+                break;
+            case TUNE:
+                break;
+            case QUIT:
+                break;
+        }
+    }
+    
+    /**
+     * Takes an integer command
+     * @param i an integer command
+     */
+    public void send(int i)
+    {
+        switch(_state)
+        {
+            case INIT:
+                break;
+            case REC:
+                break;
+            case RECD:
+                break;
+            case PRA:
+                break;
+            case PRAC:
+                break;
+            case TUNE:
+                break;
+            case QUIT:
+                break;
+        }
+    }
+    
+    /**
+     * Takes a double command
+     * @param d a double command
+     */
+    public void send(double d)
+    {
+        switch(_state)
+        {
+            case INIT:
+                break;
+            case REC:
+                break;
+            case RECD:
+                break;
+            case PRA:
+                break;
+            case PRAC:
+                break;
+            case TUNE:
+                break;
+            case QUIT:
+                break;
         }
     }
 }
