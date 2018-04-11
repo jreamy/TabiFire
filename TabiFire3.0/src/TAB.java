@@ -129,7 +129,7 @@ public class TAB
             {
                 noteLine[i] = in.nextInt();
             }
-            
+                        
             // Add the array to the ArrayList
             this.addLine(noteLine);
         }
@@ -191,7 +191,7 @@ public class TAB
      * @param line the incoming line to add to the tab
      */
     public void addLine(int[] line)
-    {
+    {        
         // Array for copying the incoming line
         int[] noteLine = new int[line.length];
         
@@ -271,6 +271,19 @@ public class TAB
     }
     
     /**
+     * Sets the base frequency of the given line
+     * @param lineNumber the line number to set
+     * @param frequency the frequency to which to set the line
+     */
+    public void setBaseNote(int lineNumber, double frequency)
+    {
+        if (lineNumber >= 0 && lineNumber < this.getNumberOfStrings())
+        {
+            _baseNotes[lineNumber] = frequency;
+        }
+    }
+    
+    /**
      * Returns the entire tab line (row) as a String.
      * @param lineNumber the string number to return.
      * @return the entire tab line (row) as a String.
@@ -317,17 +330,28 @@ public class TAB
         // The Strings for parsing the line.
         String line = "";
         String ret;
+        String mod;
         
         // Iterate through the data from the start to end locations
         for (int i = start; i < end; i++)
         {
+            mod = "-";
+            
+            for (int note : _tab.get(i))
+            {
+                if (note >= 10)
+                    mod = "--";
+            }
+            
             // The value from the tab at the given location
             int n = _tab.get(i)[lineNumber];
             
-            if (n >= 0)             // If it's posiitve add it 
+            if (n >= 10)
                 line += n + "-";
+            else if (n >= 0)             // If it's posiitve add it 
+                line += n + mod;
             else                    // If it's -1 add a '-'
-                line += "--";
+                line += "-" + mod;
             
             // If the position is the end of a measure, add a '|'
             if (i % (_timeSignature[0] * 4) == (_timeSignature[0] * 4) - 1)
@@ -363,7 +387,7 @@ public class TAB
             start = 0;
         
         // Set the end bound
-        int end = getTABLength() - 1;
+        int end = getTABLength();
         if (end < 0)
             end = 0;
                 

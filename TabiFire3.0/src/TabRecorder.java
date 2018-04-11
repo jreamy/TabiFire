@@ -1,5 +1,6 @@
 // Imports
 import java.awt.Font;
+import java.util.Arrays;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -78,6 +79,27 @@ public class TabRecorder extends JPanel implements TabDisplay
     }
     
     /**
+     * Updated the display of the current tab held in _tab.
+     */
+    @Override
+    public void displayTAB()
+    {
+        // Iterate through the lines
+        for (int i = 0; i < _tab.getNumberOfStrings(); i++)
+        {
+            // Update the text of the display line            
+            _displayText[i].setText(_tab.getTABLineFromEnd(_tab.getNumberOfStrings() - i - 1, 32));
+        }
+    }
+    
+    
+    @Override
+    public TAB getTAB()
+    {
+        return _tab;
+    }
+    
+    /**
      * Adds a new line to the tab and updates the display
      * @param inLine the line to add
      */
@@ -89,12 +111,31 @@ public class TabRecorder extends JPanel implements TabDisplay
             // Add the line to the tab
             _tab.addLine(inLine);
             
-            // Iterate through the lines
+            // Update the display
+            displayTAB();
+        }
+    }
+    
+    public void newLine(double[] inLine)
+    {
+        // If the line to add has the right length
+        if (inLine.length == _tab.getNumberOfStrings())
+        {
+            int[] line = new int[_tab.getNumberOfStrings()];
+            
             for (int i = 0; i < _tab.getNumberOfStrings(); i++)
             {
-                // Update the text of the display line
-                _displayText[i].setText(_tab.getTABLineFromEnd(_tab.getTABLength() - i - 1, 32));
+                if (inLine[i] < 0)
+                {
+                    line[i] = (int) inLine[i];
+                }
+                else
+                {
+                    line[i] = _tab.frequencyToFret(inLine[i], i);
+                }
             }
+            
+            newLine(line);
         }
     }
 }

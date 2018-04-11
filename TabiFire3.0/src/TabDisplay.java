@@ -9,4 +9,8 @@
 public interface TabDisplay
 {
     public void setTAB(TAB tab);
+    
+    public void displayTAB();
+    
+    public TAB getTAB();
 }

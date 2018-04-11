@@ -99,6 +99,19 @@ public class TabSettings
     }
     
     /**
+     * Sets the base frequency of the given line
+     * @param lineNumber the line number to set
+     * @param frequency the frequency to which to set the line
+     */
+    public void setBaseNote(int lineNumber, double frequency)
+    {
+        if (lineNumber >= 0 && lineNumber < this.getNumberOfStrings())
+        {
+            _baseNotes[lineNumber] = frequency;
+        }
+    }
+    
+    /**
      * Returns the time signature of the settings.
      * @return the time signature of the settings.
      */

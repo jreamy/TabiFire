@@ -1,7 +1,6 @@
 // Imports
 import java.awt.FlowLayout;
 import java.awt.Font;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 

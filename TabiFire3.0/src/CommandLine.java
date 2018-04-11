@@ -1,53 +1,39 @@
 
-import arduino.*;
-import com.fazecast.jSerialComm.SerialPort;
 import java.util.Scanner;
 
-/**
- * Undeveloped interface of hardware and TabiFire app,
- * it channels the input data and sends it to the app
- * @author jackreamy
- */
-public class Hardware extends Arduino
+
+public class CommandLine extends Hardware
 {
     private TabiFire _host;
-    public boolean connected = false;
+    private final Scanner in = new Scanner(System.in);
     
-    public Hardware()
+    public CommandLine()
     {
-        this("COM4");
+        System.out.println("Opened Command Prompting");
     }
     
-    public Hardware(String comPort)
-    {
-        super(comPort);
-        super.setBaudRate(115200);
-    }
-    
+    @Override
     public void link(TabiFire host)
     {
         _host = host;
     }
     
+    @Override
     public boolean connect(String comPort)
     {
-        boolean success;
+        System.out.println("Connected as " + comPort);
         
-        // Try and connect        
-        success = super.openConnection();
-        
-        return success;
+        return true;
     }
     
     @Override
     public String serialRead()
     {
         String incoming;
-        super.getSerialPort().setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0);
-        Scanner in = new Scanner(super.getSerialPort().getInputStream());
         try
         {
-            while (in.hasNext())
+            System.out.print("\nSend: ");
+            
             {
                 if (in.hasNextInt())
                 {
@@ -75,31 +61,26 @@ public class Hardware extends Arduino
         }
         catch (Exception e)
         {
-            System.out.println("error");
+            throw e;
         }
-        
-        in.close();
         
         return "";
     }
     
-    public void disconnect()
-    {
-        super.closeConnection();
-    }
-    
     public void send(char c)
     {
-        super.serialWrite(Character.toString(c));
+        System.out.print("\nGot : " + Character.toString(c) + "\nSend: ");
+        if (c == 'i')
+            super.connected = true;
     }
     
     public void send(int i)
     {
-        super.serialWrite(Integer.toString(i));
+        System.out.print("\nGot : " + Integer.toString(i) + "\nSend: ");
     }
     
     public void send(double d)
     {
-        super.serialWrite(Double.toString(d));
+        System.out.print("\nGot : " + Double.toString(d) + "\nSend: ");
     }
 }

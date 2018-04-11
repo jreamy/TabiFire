@@ -47,7 +47,7 @@ public class RecorderSettings extends JPanel
     private final JPanel _strNumPanel;
     
     // The TabSettings object
-    private TabSettings _currentSettings;
+    public TabSettings _currentSettings;
     private ArrayList<TabSettings> _allSettings;
     
     // Settings Panel
@@ -231,6 +231,15 @@ public class RecorderSettings extends JPanel
         
         // Make a new string with this offset frequency
         newString(freq);
+    }
+    
+    public void setString(int stringNumber, double frequency)
+    {
+        System.out.println(stringNumber + " : " + frequency);
+        if (stringNumber >= 0 && stringNumber < _stringData.size())
+        {
+            _stringData.get(stringNumber).setFrequency(frequency);
+        }
     }
     
     /**

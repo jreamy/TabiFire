@@ -81,8 +81,18 @@ public class RecString extends JPanel
      */
     public double getFrequency()
     {
-        // Return the string frequency
         return _frequency;
+    }
+    
+    /**
+     * Sets the frequency of the string.
+     * @param frequency the new frequency of the string
+     */
+    public void setFrequency(double frequency)
+    {
+        _frequency = frequency;
+        showFrequency();
+        _partOf.rename();
     }
     
     /**

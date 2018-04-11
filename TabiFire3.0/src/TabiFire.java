@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,6 +22,7 @@ import javax.swing.JTextArea;
 public class TabiFire extends JFrame
 {
     // State Labels
+    public static final String commands = "irReEpPtwq";
     public static final char INIT = 'i';
     public static final char REC  = 'r';
     public static final char RECD = 'R';
@@ -32,17 +34,35 @@ public class TabiFire extends JFrame
     public static final char WAIT = 'w';
     public static final char QUIT = 'q';
     
+    // Data Prompts
+    public static final int START_DATA = -1;
+    public static final int END_DATA = -2;
+    public static final int QUIT_DATA = -3;
+    
+    // Data Buffer
+    private ArrayList<Double> _frequencyData = new ArrayList<>();
+    private ArrayList<Integer> _stringNumbers = new ArrayList<>();
+    
+    // COM Port names
+    public static String[] PORTNAMES = new String[]
+    { "COM3", "COM4", "COM5" };
+    private int _portNameLocation = 0;
+    
     // State variable
     private char _state;
+    public boolean running = true;
+    public boolean connected = false;
     
     // The tabs themselves for the recorder and editor
     TAB _recTAB = new TAB();
     TAB _edtTAB = new TAB();
+    TAB _praTAB = new TAB();
     
     // Header Panel
     private final JButton _menuConnect;
     private final JButton _menuRecord;
     private final JButton _menuEdit;
+    private final JButton _menuPractice;
     private final JButton _menuTune;
     private final JButton _menuQuit;
     private final JPanel _menuPanel;
@@ -103,6 +123,10 @@ public class TabiFire extends JFrame
         _menuEdit = new JButton(" Edit ");
         _menuEdit.addActionListener(new MenuEditButton());
         
+        // Edit Button
+        _menuPractice = new JButton(" Practice ");
+        _menuPractice.addActionListener(new MenuPracticeButton());
+        
         // Tune Button
         _menuTune = new JButton(" Tune ");
         _menuTune.addActionListener(new MenuTuneButton());
@@ -115,6 +139,7 @@ public class TabiFire extends JFrame
         _menuPanel.add(_menuConnect);
         _menuPanel.add(_menuRecord);
         _menuPanel.add(_menuEdit);
+        _menuPanel.add(_menuPractice);
         _menuPanel.add(_menuTune);
         _menuPanel.add(_menuQuit);
         
@@ -201,35 +226,35 @@ public class TabiFire extends JFrame
     {
         // Switch on the input state and display what needs
         // to be displayed
+        hideAll();
         switch(state)
         {
             case INIT:
-                hideAll();
                 showConnector();
                 break;
             case REC:
-                hideAll();
                 showRecorderSettings();
                 break;
             case RECD:
-                hideAll();
                 showRecorder();
                 _recorder.setTAB(_recTAB);
                 break;
             case EDT:
-                hideAll();
                 showEditOpener();
                 break;
             case EDIT:
                 hideAll(false);
                 showEditor();
                 break;
+            case PRA:
+                showPracticeOpener();
+                break;
+            case PRAC:
+                break;
             case TUNE:
-                hideAll();
                 showTuner();
                 break;
             case QUIT:
-                hideAll();
                 break;
         }
 
@@ -275,6 +300,14 @@ public class TabiFire extends JFrame
         // Show the things we need
         _filePanel.setVisible(true);
         _fileButton.setText(" Connect ");
+        if (!connected)
+        {
+            _fileText.setText(PORTNAMES[_portNameLocation]);
+        }
+        else
+        {
+            _fileText.setText("Connected");
+        }
         
         // Set instructions
         _instructions.setText(" Enter the name of the COM port to connect with: ");
@@ -344,6 +377,18 @@ public class TabiFire extends JFrame
         _instructions.setVisible(true);
     }
     
+    public void showPracticeOpener()
+    {
+        // Show the things we need
+        _filePanel.setVisible(true);
+        _fileButton.setText(" Open ");
+        _fileText.setText("SampleTab.txt");
+        
+        // Set instructions
+        _instructions.setText(" Enter the name of the TAB to practice: ");
+        _instructions.setVisible(true);
+    }
+    
     /**
      * Shows the tuner
      */
@@ -399,9 +444,7 @@ public class TabiFire extends JFrame
     public boolean tryLoading(TabDisplay tabDisplay, TAB tab, String filename)
     {
         boolean success = false;
-        
-        System.out.println("TryLoading");
-        
+                
         if (!filename.contains(".txt"))
         {
             filename += ".txt";
@@ -441,11 +484,24 @@ public class TabiFire extends JFrame
             switch(_state)
             {
                 case INIT:
+                    // Try and connect
+                    connected = _arduino.connect(_fileText.getText());
+                    if (connected)
+                    {
+                        _fileText.setText("Connected");
+                        respond();
+                    }
+                    else
+                    {
+                        _portNameLocation = (_portNameLocation + 1) % 3;
+                        _fileText.setText(PORTNAMES[_portNameLocation]);
+                    }
                     break;
                 case REC:
                     _recTAB = new TAB(_recorderSettings.getTabSettings());
                     _recorderSettings.savePresets();
                     setState(RECD);
+                    respond();
                     break;
                 case RECD:
                     trySaving(_recTAB, _fileText.getText());
@@ -504,6 +560,18 @@ public class TabiFire extends JFrame
     }
     
     /**
+     * The edit button sets the EDT state
+     */
+    private class MenuPracticeButton implements ActionListener
+    {
+        @Override
+        public void actionPerformed(final ActionEvent e)
+        {
+            setState(PRA);
+        }
+    }
+    
+    /**
      * The tune button sets the TUNE state
      */
     private class MenuTuneButton implements ActionListener
@@ -535,6 +603,7 @@ public class TabiFire extends JFrame
         @Override
         public void windowClosing(final WindowEvent event)
         {  
+            running = false;
             System.exit(0);
         }
     }
@@ -555,28 +624,74 @@ public class TabiFire extends JFrame
     }
     
     /**
+     * Process the data that has already been taken 
+     */
+    public void processData()
+    {
+        switch(_state)
+        {
+            case TUNE:
+                _tuner.setFrequency(_frequencyData.get(0));
+                
+                for (int i = 0; i < _stringNumbers.size(); i++)
+                {
+                    if (_stringNumbers.get(i) < _recTAB.getNumberOfStrings())
+                    {
+                        _recorderSettings.setString(_stringNumbers.get(i), _frequencyData.get(i));
+                    }
+                }
+                
+                break;
+            case RECD:
+                double[] line = new double[_recTAB.getNumberOfStrings()];
+                
+                for (int i = 0; i < line.length; i++)
+                {
+                    line[i] = -1.0;
+                }
+        
+                for (int i = 0; i < _frequencyData.size(); i++)
+                {
+                    line[_stringNumbers.get(i)] = _frequencyData.get(i);
+                }
+                
+                _recorder.newLine(line);
+                
+                break;
+            default:
+                break;
+        }
+    }
+    
+    /**
+     * Sends back to the Arduino the appropriate response given the state
+     */
+    public void respond()
+    {
+        switch(_state)
+        {
+            case RECD:
+                _arduino.send('r');
+                break;
+            case PRAC:
+                _arduino.send('p');
+                break;
+            default:
+                _arduino.send(_state);
+                break;
+        }
+    }
+    
+    /**
      * Takes a character command
      * @param c a character command
      */
     public void send(char c)
     {
-        switch(_state)
+        if (commands.indexOf(c) > -1)
         {
-            case INIT:
-                break;
-            case REC:
-                
-                break;
-            case RECD:
-                break;
-            case PRA:
-                break;
-            case PRAC:
-                break;
-            case TUNE:
-                break;
-            case QUIT:
-                break;
+            setState(c);
+            respond();
         }
     }
     
@@ -586,21 +701,26 @@ public class TabiFire extends JFrame
      */
     public void send(int i)
     {
-        switch(_state)
+        switch(i)
         {
-            case INIT:
+            case START_DATA:
+                _frequencyData.clear();
+                _stringNumbers.clear();
                 break;
-            case REC:
+            case END_DATA:
+                processData();
                 break;
-            case RECD:
+            case QUIT_DATA:
                 break;
-            case PRA:
-                break;
-            case PRAC:
-                break;
-            case TUNE:
-                break;
-            case QUIT:
+            default:
+                if (i < _recTAB.getNumberOfStrings())
+                {
+                    _stringNumbers.add(i);
+                }
+                else
+                {
+                    send((double) i);
+                }
                 break;
         }
     }
@@ -611,22 +731,11 @@ public class TabiFire extends JFrame
      */
     public void send(double d)
     {
-        switch(_state)
-        {
-            case INIT:
-                break;
-            case REC:
-                break;
-            case RECD:
-                break;
-            case PRA:
-                break;
-            case PRAC:
-                break;
-            case TUNE:
-                break;
-            case QUIT:
-                break;
-        }
+        _frequencyData.add(d);
+    }
+    
+    public void send(String S)
+    {
+        System.out.println("String " + S);
     }
 }

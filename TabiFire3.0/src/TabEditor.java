@@ -1,14 +1,10 @@
 // Imports
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.InputMismatchException;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -176,6 +172,7 @@ public class TabEditor extends JPanel implements TabDisplay
      * Loads the input tab into the TabEditor panel / display.
      * @param tab the input tab to edit.
      */
+    @Override
     public void setTAB(TAB tab)
     {
         // Get the TAB to display
@@ -191,7 +188,7 @@ public class TabEditor extends JPanel implements TabDisplay
         double tuning[] = _tab.getBaseNotes();
         
         // Set the line Strings
-        _tabTuning = TAB.frequencyToNote(tuning[0]);
+        _tabTuning = TAB.frequencyToNote(tuning[_tab.getNumberOfStrings() - 1]);
         _tabBlank = "-";
         _tabDivider = "|";
         _tabEmpty = " ";
@@ -199,7 +196,7 @@ public class TabEditor extends JPanel implements TabDisplay
         // Iterate through the base notes setting default tab lines
         for (int i = 1; i < tuning.length; i++)
         {
-            _tabTuning += "\n" + TAB.frequencyToNote(tuning[i]);
+            _tabTuning += "\n" + TAB.frequencyToNote(tuning[_tab.getNumberOfStrings() - 1 - i]);
             _tabBlank += "\n-";
             _tabDivider += "\n|";
             _tabEmpty += "\n ";
@@ -236,6 +233,7 @@ public class TabEditor extends JPanel implements TabDisplay
      * This one was really messy and I got it working by the
      * grace of God.
      */
+    @Override
     public void displayTAB()
     {
         // Update the distribution
@@ -279,6 +277,13 @@ public class TabEditor extends JPanel implements TabDisplay
         }
     }
     
+    
+    @Override
+    public TAB getTAB()
+    {
+        return _tab;
+    }
+    
     /**
      * Given the column number in the display, calculates the 
      * position in the actual tab.
@@ -295,6 +300,12 @@ public class TabEditor extends JPanel implements TabDisplay
         return pos;
     }
     
+    /**
+     * Returns an array of arrays, each holding:
+     *  { the screen column, and tab column }
+     * @return an array of arrays, each holding:
+     *  { the screen column, and tab column }
+     */
     public int[][] getChangedColumns()
     {
         // Initialize an ArrayList of int arrays
