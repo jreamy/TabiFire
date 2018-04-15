@@ -35,13 +35,13 @@ public class TabiFire extends JFrame
     public static final char QUIT = 'q';
     
     // Data Prompts
-    public static final int START_DATA = -1;
-    public static final int END_DATA = -2;
+    public static final int NOTE_DATA = -1;
+    public static final int TIME_DATA = -2;
     public static final int QUIT_DATA = -3;
+    private int _dataState = NOTE_DATA;
     
     // Data Buffer
-    private ArrayList<Double> _frequencyData = new ArrayList<>();
-    private ArrayList<Integer> _stringNumbers = new ArrayList<>();
+    private Note incomingNote;
     
     // COM Port names
     public static String[] PORTNAMES = new String[]
@@ -54,7 +54,7 @@ public class TabiFire extends JFrame
     public boolean connected = false;
     
     // The tabs themselves for the recorder and editor
-    TAB _recTAB = new TAB();
+    TABLive _recTAB = new TABLive(new TabSettings());
     TAB _edtTAB = new TAB();
     TAB _praTAB = new TAB();
     
@@ -96,7 +96,7 @@ public class TabiFire extends JFrame
     TabiFire()
     {
         // Set up the frame
-        final int FRAME_WIDTH = 600;
+        final int FRAME_WIDTH = 650;
         final int FRAME_HEIGHT = 450;
         
         this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
@@ -498,7 +498,7 @@ public class TabiFire extends JFrame
                     }
                     break;
                 case REC:
-                    _recTAB = new TAB(_recorderSettings.getTabSettings());
+                    _recTAB = new TABLive(_recorderSettings.getTabSettings());
                     _recorderSettings.savePresets();
                     setState(RECD);
                     respond();
@@ -623,45 +623,6 @@ public class TabiFire extends JFrame
         _arduino = arduino;
     }
     
-    /**
-     * Process the data that has already been taken 
-     */
-    public void processData()
-    {
-        switch(_state)
-        {
-            case TUNE:
-                _tuner.setFrequency(_frequencyData.get(0));
-                
-                for (int i = 0; i < _stringNumbers.size(); i++)
-                {
-                    if (_stringNumbers.get(i) < _recTAB.getNumberOfStrings())
-                    {
-                        _recorderSettings.setString(_stringNumbers.get(i), _frequencyData.get(i));
-                    }
-                }
-                
-                break;
-            case RECD:
-                double[] line = new double[_recTAB.getNumberOfStrings()];
-                
-                for (int i = 0; i < line.length; i++)
-                {
-                    line[i] = -1.0;
-                }
-        
-                for (int i = 0; i < _frequencyData.size(); i++)
-                {
-                    line[_stringNumbers.get(i)] = _frequencyData.get(i);
-                }
-                
-                _recorder.newLine(line);
-                
-                break;
-            default:
-                break;
-        }
-    }
     
     /**
      * Sends back to the Arduino the appropriate response given the state
@@ -703,19 +664,19 @@ public class TabiFire extends JFrame
     {
         switch(i)
         {
-            case START_DATA:
-                _frequencyData.clear();
-                _stringNumbers.clear();
+            case NOTE_DATA:
+                incomingNote = new Note();
                 break;
-            case END_DATA:
-                processData();
+            case TIME_DATA:
+                _dataState = TIME_DATA;
                 break;
             case QUIT_DATA:
+                _dataState = QUIT_DATA;
                 break;
             default:
                 if (i < _recTAB.getNumberOfStrings())
                 {
-                    _stringNumbers.add(i);
+                    incomingNote.setStringNumber(i);
                 }
                 else
                 {
@@ -731,7 +692,27 @@ public class TabiFire extends JFrame
      */
     public void send(double d)
     {
-        _frequencyData.add(d);
+        switch(_dataState)
+        {
+            case NOTE_DATA:
+                incomingNote.setFrequency(d);
+                break;
+            case TIME_DATA:
+                incomingNote.setTime(d);
+                if (_state == RECD)
+                {
+                    _recTAB.addNote(incomingNote);
+                }
+                else if (_state == TUNE)
+                {
+                    _tuner.setFrequency(incomingNote.getFrequency());
+                    _recorderSettings.setString(incomingNote.getStringNumber(),
+                            incomingNote.getFrequency());
+                }
+                break;
+            case QUIT_DATA:
+                break;
+        }
     }
     
     public void send(String S)
