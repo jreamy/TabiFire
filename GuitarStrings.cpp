@@ -61,8 +61,8 @@ unsigned long GuitarStrings::getSampleTime()
 void GuitarStrings::printSample()
 {
   Serial.println(-4);
-  Serial.println(_startSample);
-  Serial.println(_endSample);
+  Serial.println((int) (_startSample / 1000));
+  Serial.println(_endSample - _startSample);
   for (int i = 0; i < SAMPLES; i++)
   {
     Serial.println(_dataPoints[i]);
@@ -74,9 +74,9 @@ void GuitarStrings::printPrettySample()
 {
   Serial.println(-4);
   Serial.print("[");
-  Serial.print(_startSample);
+  Serial.print((int) (_startSample / 1000));
   Serial.print(", ");
-  Serial.print(_endSample);
+  Serial.print(_endSample - _startSample);
   for (int i = 0; i < SAMPLES; i++)
   {
     Serial.print(", ");
