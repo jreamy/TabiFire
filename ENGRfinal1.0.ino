@@ -1,20 +1,24 @@
+GuitarStrings strings;
+Buttons buttons;
+
+
+string1=pin
+string2=pin
+string3=pin
+string4=pin
+string5=pin
+string6=pin
+ //set the guitar strings =
+    int guitarStrings[6] = {string1, string2, string3, string4, string5, string6};
+
 void setup() {
   Serial.begin(
-    //set the buttons as inputs
-    pinMode(yellowButton, INPUT);
-    pinMode(blueButton, INPUT);
-    pinMode(redButton, INPUT);
 
-    //set the guitar strings =
-    int guitarStrings[5] = {0, 0, 0, 0, 0};
-
-  for (int i = 0; thisString < 5 : thisString++) {
+  for (int thisString = 0; thisString < 5 : thisString++) {
   pinMode(guitarStrings[thisString], OUTPUT);
   }
-}
-
-
-/
+buttons.attachbuttons(pinNumbers);
+    
 //set state
 int state = 0;
 
@@ -27,9 +31,12 @@ pinMode(redLED, OUTPUT);
 
 void loop() {
   switch (state) {
-    case WAIT:
+    case 0:
+      //wait state
 
-    case CONNECT:
+    case 1:
+      //connect state
+      
       //initilze communication between computer and arduino
       Serial.println("c");
 
@@ -38,18 +45,27 @@ void loop() {
 
         //turn on blue LED light
         digital.Write(blueLED, HIGH);
+        
+        state=0;
+        break;
 
-
-      case RECORD:
+      case 2:
+        //recordprep state
+        
         //initilze communication between computer and arduino
-        Serial.println("r");
-
-        //wait for computer to send r
-        if (Serial.read() == r) {
-
-          //turn on blue LED light
-          digitalWrite(redLED, HIGH);
-
+        Serial.println("r);
+                       
+         do{
+            //turn on blue LED light
+           digitalWrite(redLED, HIGH);
+           
+         } while Serial.read() == r);  
+        state=3;
+          break;
+          
+          case 3:
+          //record state
+          
           //check the string for frequency
           for (int thisString = 0; thisString < 5 : thisString++) {
             strings.sample() = Buttons.checkStrings420();
@@ -68,11 +84,10 @@ void loop() {
           }
         }
 
-        GuitarStrings strings
+  
 
-
-
-      case TUNE:
+      case 4:
+        //tune state
 
 
       }
