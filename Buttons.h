@@ -1,16 +1,30 @@
 /* ================================================ *
+
  *                                                  *
+
  *                 Button Library                   *
+
  *                                                  *
+
  *      Designed to be a dynamic set of buttons     *
+
  *          Holds up to 10 buttons at once          *
+
  *                                                  *
+
  *              Written by: Jack Reamy              *
+
  *                                                  *
+
  * ================================================ */
 
+
+
 #ifndef Buttons_h
+
 #define Buttons_h
+
+
 
 #include "Arduino.h"
 
@@ -41,4 +55,3 @@ class Buttons
 };
 
 #endif
-
