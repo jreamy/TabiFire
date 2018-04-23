@@ -326,7 +326,7 @@ void Buttons::updateButtonStates() {
 
 }
 
-boolean  Buttons:::checkStrings420()
+boolean Buttons:::checkStrings420()
 {
   //local variables
   int currentState;
@@ -335,7 +335,7 @@ boolean  Buttons:::checkStrings420()
   //iterate through the buttons to update
   for (int i = 0; i < _numberOfButtons; i++) {
     previousState = _lastButtonState[i];
-    
+    currentState = _buttonState[i];
 
     //check if string has been plucked by if the state has changed
     if (currentState != previousState && currentState == LOW) {
