@@ -326,14 +326,15 @@ void Buttons::updateButtonStates() {
 
 }
 
-boolean Buttons:::checkStrings420()
+boolean Buttons::checkStrings420()
 {
   //local variables
   int currentState;
   int previousState;
 
   //iterate through the buttons to update
-  for (int i = 0; i < _numberOfButtons; i++) {
+  string=GuitarString[i];
+  for (string) {
     previousState = _lastButtonState[i];
     currentState = _buttonState[i];
 
