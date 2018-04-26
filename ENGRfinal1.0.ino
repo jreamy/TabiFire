@@ -1,13 +1,20 @@
 GuitarStrings strings;
 Buttons buttons;
 
+int redButton = 2;
+int blueButton = 3;
+int yellowButton = 4;
 
-string1=pin
-string2=pin
-string3=pin
-string4=pin
-string5=pin
-string6=pin
+int redLED = 11;
+int blueLED = 12;
+int yellowLED = 13;
+
+int string1= 5;
+int string2 = 6;
+int string3 = 7;
+int string4 = 8;
+int string5 = 9;
+int string6 = 10;
  //set the guitar strings =
     int guitarStrings[6] = {string1, string2, string3, string4, string5, string6};
 
@@ -53,7 +60,7 @@ void loop() {
         //recordprep state
         
         //initilze communication between computer and arduino
-        Serial.println("r);
+        Serial.println("r");
                        
          do{
             //turn on blue LED light
@@ -65,18 +72,17 @@ void loop() {
           
           case 3:
           //record state
+       
+       return String= ("-3 ");
           
-          //check the string for frequency
+          //check if strings are played
           for (int thisString = 0; thisString < 5 : thisString++) {
-            strings.sample() = Buttons.checkStrings420();
-
-            //if the string is played send data
-            Serial.println(strings.printsample());
+            Buttons.checkStrings420(thisString)=x; 
+           
+           return String=(return String , thisString , x);
+           
           }
-          //if string is not played
-          if (currentState = LOW) {
-            //tell computer to stop recieving data
-            Serial.println(-3);
+       Serial.println(return String, "-1");
 
             //update the state
             state = WAIT;
